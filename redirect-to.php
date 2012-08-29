@@ -21,21 +21,23 @@ class Redirect_To {
 	}
 	
 	function add_meta_boxes ( $post_type ) {
-		add_meta_box( 
-			'redirect_to_meta',
-			__('Redirect'),
-			array( &$this, 'redirect_to_meta_box' ),
-			$post_type,
-			'side',
-			'low'
-		);
+		if ( get_post_type_object( $post_type )->public ) {
+			add_meta_box( 
+				'redirect_to_meta',
+				__('Redirect'),
+				array( &$this, 'redirect_to_meta_box' ),
+				$post_type,
+				'side',
+				'low'
+			);
+		}
 	}
 	
 	function redirect_to_meta_box ( $post ) {
 		wp_nonce_field( plugin_basename( __FILE__ ), 'redirect_to_nonce' );
 		?>
 		<p><input type="checkbox" name="redirect_to_enabled" id="redirect_to_enabled" value="true" <?php echo get_post_meta( $post->ID, '_redirect_to_enabled', true ) ? 'checked="checked"' : ''; ?>>
-			<label for="redirect_to_enabled"><?php _e("Redirect to new URL"); ?></label></p> 
+			<label for="redirect_to_enabled"><?php _e('Redirect to new URL'); ?></label></p> 
 		<div id="redirect_to_reveal">
 			<p><label for="redirect_to_url"><?php _e('URL'); ?></label> 
 				<br /><input type="url" name="redirect_to_url" id="redirect_to_url" value="<?php echo get_post_meta( $post->ID, '_redirect_to_url', true ); ?>" class="large-text" /></p>
