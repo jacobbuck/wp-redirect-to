@@ -3,7 +3,7 @@
 Plugin Name: Redirect To
 Plugin URI: https://github.com/jacobbuck/wp-redirect-to
 Description: Lets you make a post or page redirect to another URL.
-Version: 1.0
+Version: 1.0.2
 Author: Jacob Buck
 Author URI: http://jacobbuck.co.nz/
 */
@@ -72,25 +72,33 @@ class Redirect_To {
 	}
 	
 	function template_redirect () {
-		// Get redirect metadata
-		$enabled = get_post_meta( get_the_ID(), '_redirect_to_enabled', true );
-		$url = get_post_meta( get_the_ID(), '_redirect_to_url', true );
 		// Redirect if enabled
-		if ( $enabled && $url ) {
+		if ( get_post_meta( get_the_ID(), '_redirect_to_enabled', true ) ) {
+			$url = get_post_meta( get_the_ID(), '_redirect_to_url', true );
+			// Disable caching
 			define( 'DONOTCACHEPAGE', true ); // wp-super-cache
 			nocache_headers();
-			wp_redirect( $url );
+			if ( $url ) {
+				// Redirect if URL set
+				wp_redirect( $url );
+			} else {
+				// Otherwise show 404 page
+				global $wp_query;
+				$wp_query->set_404();
+				status_header(404);
+				get_template_part('404');
+			}
 			exit;
 		}
 	}
 	
 	function post_link ( $permalink, $post_id ) {
-		// Get redirect metadata
-		$enabled = get_post_meta( $post_id, '_redirect_to_enabled', true );
-		$url = get_post_meta( $post_id, '_redirect_to_url', true );
 		// Return redirect URL if enabled
-		if ( $enabled && $url )
-			return $url;
+		if ( get_post_meta( $post_id, '_redirect_to_enabled', true ) ) {
+			$url = get_post_meta( $post_id, '_redirect_to_url', true );
+			if ( $url )
+				return $url;
+		}	
 		// Otherwise return original permalink
 		return $permalink;
 	}
