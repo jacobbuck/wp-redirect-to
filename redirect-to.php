@@ -3,7 +3,7 @@
 Plugin Name: Redirect To
 Plugin URI: https://github.com/jacobbuck/wp-redirect-to
 Description: Lets you make a post or page redirect to another URL.
-Version: 1.0.2
+Version: 1.0.3
 Author: Jacob Buck
 Author URI: http://jacobbuck.co.nz/
 */
@@ -12,12 +12,15 @@ class Redirect_To {
 	
 	function __construct () {
 		// Actions
-		add_action( 'add_meta_boxes', array( &$this, 'add_meta_boxes') );
-		add_action( 'save_post', array( &$this, 'save_post') );
-		add_action( 'template_redirect', array( &$this, 'template_redirect') );
+		add_action( 'add_meta_boxes', array( &$this, 'add_meta_boxes' ) );
+		add_action( 'save_post', array( &$this, 'save_post' ) );
+		add_action( 'template_redirect', array( &$this, 'template_redirect' ) );
 		// Filters 
-		add_filter( 'page_link', array( &$this, 'post_link'), 10, 2 );
-		add_filter( 'post_link', array( &$this, 'post_link'), 10, 2 );
+		if ( ! is_admin() ) {
+			add_filter( 'page_link', array( &$this, 'post_link' ), 10, 2 );
+			add_filter( 'post_link', array( &$this, 'post_link' ), 10, 2 );
+			add_filter( 'post_type_link', array( &$this, 'post_type_link' ), 10, 2 );
+		}
 	}
 	
 	function add_meta_boxes ( $post_type ) {
@@ -43,13 +46,13 @@ class Redirect_To {
 				<br /><input type="url" name="redirect_to_url" id="redirect_to_url" value="<?php echo get_post_meta( $post->ID, '_redirect_to_url', true ); ?>" class="large-text" /></p>
 		</div>
 		<script>
-			(function(doc){
-				var enabled = doc.getElementById('redirect_to_enabled'),
-					reveal  = doc.getElementById('redirect_to_reveal');
-				function update () { reveal.style.display = enabled.checked ? 'block' : 'none' }
-				enabled.onchange = update;
-				update();
-			})(document);
+		(function(doc){
+			var enabled = doc.getElementById('redirect_to_enabled'),
+				reveal  = doc.getElementById('redirect_to_reveal');
+			function update () { reveal.style.display = enabled.checked ? 'block' : 'none' }
+			enabled.onchange = update;
+			update();
+		})(document);
 		</script>
 		<?php 
 	}
@@ -101,6 +104,10 @@ class Redirect_To {
 		}	
 		// Otherwise return original permalink
 		return $permalink;
+	}
+	
+	function post_type_link ( $post_link, $post ) {
+		return $this->post_link( $post_link, $post->ID; );
 	}
 	
 }
