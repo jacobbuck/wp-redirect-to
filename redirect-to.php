@@ -107,7 +107,7 @@ class Redirect_To {
 	}
 	
 	function post_type_link ( $post_link, $post ) {
-		return $this->post_link( $post_link, $post->ID; );
+		return $this->post_link( $post_link, $post->ID );
 	}
 	
 }
