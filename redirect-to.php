@@ -3,7 +3,7 @@
 Plugin Name: Redirect To
 Plugin URI: https://github.com/jacobbuck/wp-redirect-to
 Description: Lets you make a post or page redirect to another URL.
-Version: 1.0.4
+Version: 1.0.5
 Author: Jacob Buck
 Author URI: http://jacobbuck.co.nz/
 */
@@ -72,31 +72,41 @@ class Redirect_To {
 		if ( ! current_user_can( 'edit_post', $post_id ) )
 			return;
 		// Save Post Meta
-		update_post_meta( $post_id, '_redirect_to_enabled', empty( $_POST['redirect_to_enabled'] ) ? 'enabled' : '' );
+		update_post_meta( $post_id, '_redirect_to_enabled', empty( $_POST['redirect_to_enabled'] ) ? '' : 'enabled' );
 		if ( isset( $_POST['redirect_to_url'] ) ) {
 			update_post_meta( $post_id, '_redirect_to_url', empty( $_POST['redirect_to_url'] ) ? '' : trailingslashit( esc_url_raw( $_POST['redirect_to_url'] ) ) );
 		}
 	}
 
 	function template_redirect () {
-		// Redirect if enabled
-		if ( 'enabled' === get_post_meta( get_the_ID(), '_redirect_to_enabled', true ) ) {
-			$url = get_post_meta( get_the_ID(), '_redirect_to_url', true );
-			// Disable caching
-			define( 'DONOTCACHEPAGE', true ); // wp-super-cache
-			nocache_headers();
-			if ( $url ) {
-				// Redirect if URL set
-				wp_redirect( $url );
-			} else {
-				// Otherwise show 404 page
-				global $wp_query;
-				$wp_query->set_404();
-				status_header(404);
-				get_template_part('404');
-			}
-			exit;
+
+		// Check if singular post/page
+		if ( ! is_singular() )
+			return;
+
+		// Check if redirect enabled
+		if ( 'enabled' !== get_post_meta( get_the_ID(), '_redirect_to_enabled', true ) )
+			return;
+
+		$url = get_post_meta( get_the_ID(), '_redirect_to_url', true );
+
+		// Disable caching
+		nocache_headers();
+		define( 'DONOTCACHEPAGE', true );
+
+		if ( $url ) {
+			// Redirect if URL set
+			wp_redirect( $url );
+		} else {
+			// Otherwise show 404 page
+			global $wp_query;
+			$wp_query->set_404();
+			status_header(404);
+			get_template_part('404');
 		}
+
+		exit;
+
 	}
 
 	function post_link ( $permalink, $post_id ) {
